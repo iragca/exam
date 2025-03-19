@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To do List</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+
+
+        <div class="box">
+
+            <h1>These are your assignments.</h1>
+
+            <div id="tasks"></div>
+
+
+            <a href="create_task.html"><button> Create Task</button></a>
+        </div>
+        
+            
+    </div>
+ 
+    <script>
+        // Attach event listener to the form submit event
+        
+
+
+
+        axios.get('http://127.0.0.1:8000/get_tasks/?name=a')
+        .then(function (response) {
+
+            console.log(response.data.tasks)
+            console.log(response.data.tasks.length)
+
+            const container = document.getElementById("tasks");
+
+            for (let i = 0; i < response.data.tasks.length; i++) {
+                let content = "<p>"  +  response.data.tasks[i] + "</p> <br>";
+                container.innerHTML += content;
+            }
+        })
+        .catch(function (error) {
+            console.log(error.response ? error.response.data : error.message)
+        });
+      
+    </script>
+</body>
+</html>
