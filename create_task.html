@@ -22,8 +22,6 @@
                 <input type="text" id="task" name="username"><br>
                 <label for="username">deadline:</label>
                 <input type="text" id="deadline" name="username"><br>
-                <label for="username">name</label>
-                <input type="text" id="user" name="username"><br>
                 <button type="submit">Create</button>
             </form>
 
@@ -34,6 +32,19 @@
     </div>
  
     <script>
+        function getCookie(name) {
+            let cookie = {};
+            document.cookie.split(';').forEach(function(el) {
+                let split = el.split('=');
+                cookie[split[0].trim()] = split.slice(1).join("=");
+            })
+            return cookie[name];
+        }
+        // Attach event listener to the form submit event
+        
+
+
+        console.log('cookie',getCookie('username'))
         // Attach event listener to the form submit event
         document.getElementById('myForm').addEventListener('submit', function (event) {
             event.preventDefault(); // Prevent form from refreshing the page
@@ -42,7 +53,7 @@
             const data = {
                 'task':document.getElementById('task').value,
                 'deadline':document.getElementById('deadline').value,
-                'user':document.getElementById('user').value,
+                'user':getCookie('username'),
             }
 
             axios.post('http://127.0.0.1:8000/create_task/',data)

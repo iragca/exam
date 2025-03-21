@@ -21,22 +21,35 @@
 
 
             <a href="create_task.html"><button> Create Task</button></a>
+            <button onClick="(function(){
+                window.location.replace('index.html');
+            })()"> Log Out</button>
         </div>
         
             
     </div>
  
     <script>
+
+        function getCookie(name) {
+            let cookie = {};
+            document.cookie.split(';').forEach(function(el) {
+                let split = el.split('=');
+                cookie[split[0].trim()] = split.slice(1).join("=");
+            })
+            return cookie[name];
+        }
         // Attach event listener to the form submit event
         
 
 
-
-        axios.get('http://127.0.0.1:8000/get_tasks/?name=a')
+        console.log('cookie',getCookie('username'))
+        axios.get('http://127.0.0.1:8000/get_tasks/?name='+getCookie('username'))
         .then(function (response) {
 
             console.log(response.data.tasks)
             console.log(response.data.tasks.length)
+            console.log(document.cookie)
 
             const container = document.getElementById("tasks");
 

@@ -32,6 +32,17 @@
     </div>
  
     <script>
+        function getCookie(name) {
+            let cookie = {};
+            document.cookie.split(';').forEach(function(el) {
+                let split = el.split('=');
+                cookie[split[0].trim()] = split.slice(1).join("=");
+            })
+            return cookie[name];
+        }
+        document.cookie = 'username=';
+        console.log('heheh' + getCookie('username'))
+        console.log('heheh' + document.cookie)
         // Attach event listener to the form submit event
         document.getElementById('myForm').addEventListener('submit', function (event) {
             event.preventDefault(); // Prevent form from refreshing the page
@@ -48,6 +59,7 @@
             .then(function (response) {
 
                 if(response.data.status == 'Logged in'){
+                    document.cookie = 'username=' + document.getElementById('username').value;
                     window.location.replace("main.html");
                 }
 
