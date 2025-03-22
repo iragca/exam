@@ -1,10 +1,8 @@
+import pandas as pd
+import polars as pl
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from pydantic import BaseModel
-
-import polars as pl
-import pandas as pd
 
 app = FastAPI()
 
@@ -15,15 +13,18 @@ app.add_middleware(
     allow_methods=["*"],  # This allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # This allows all headers
 )
+
+
 class User(BaseModel):
     username: str
-    password: str 
+    password: str
+
 
 class Task(BaseModel):
     task: str
-    deadline: str 
+    deadline: str
     user: str
- 
+
 
 @app.post("/login/")
 async def user_login(User: User):
@@ -38,12 +39,17 @@ async def user_login(User: User):
         dict: A response indicating whether the login was successful or not.
               - If successful, ttasktatus will be "Logged in".
               - If failed (user not found or incorrect password), appropriate message will be returned.
-    """ 
+    """
     data = pl.read_csv("users.csv")
 
-    if User.username in data['username'] and User.password in data['password']:
+    correct_user = User.username in data["username"]
+    correct_password = User.password in data["password"]
+
+    if correct_user and correct_password:
         return {"status": "Logged in"}
-    
+    elif correct_user and not correct_password:
+        return {"status": "Incorrect Password"}
+
     return {"status": "User not found"}
 
 
@@ -60,7 +66,18 @@ async def create_user(User: User):
               - If successful, the status will be "User Created".
               - If user already exists, a relevant message will be returned.
     """
+
+    data = pl.read_csv("users.csv")
+
+    if User.username in data["username"]:
+        return {"status": "User already exists"}
+
+    pl.concat(
+        [data, pl.DataFrame({"username": [User.username], "password": [User.password]})]
+    ).write_csv("users.csv")
+
     return {"status": "User Created"}
+
 
 @app.post("/create_task/")
 async def create_task(Task: Task):
@@ -74,11 +91,30 @@ async def create_task(Task: Task):
         dict: A response indicating whether the task was successfully created.
               - If successful, the status will be "Task Created".
     """
+    task_data = pl.read_csv("tasks.csv")
+    user_data = pl.read_csv("users.csv")
+
+    if Task.user not in user_data["username"]:
+        return {"status": "User not found"}
+
+    pl.concat(
+        [
+            task_data,
+            pl.DataFrame(
+                {
+                    "user": [Task.user],
+                    "task": [Task.task],
+                    "deadline": [Task.deadline],
+                }
+            ),
+        ]
+    ).write_csv("tasks.csv")
+
     return {"status": "task Created"}
+
 
 @app.get("/get_tasks/")
 async def get_tasks(name: str):
-
     """
     Retrieves the list of tasks associated with a specific user.
 
@@ -91,6 +127,15 @@ async def get_tasks(name: str):
               - If no tasks are found for the user, an empty list will be returned.
     """
 
+    task_data = pl.read_csv("tasks.csv").to_pandas()
+    user_data = pl.read_csv("users.csv")
 
+    if name not in user_data["username"]:
+        return {"error": "User not found"}
 
-    return {"tasks": [ ['laba','2','a'] , ['study','6','a'] , ['code','10','a']  ] }
+    tasks = task_data.loc[task_data["user"] == name]
+
+    if len(tasks) == 0:
+        return {"tasks": []}
+
+    return {"tasks": tasks.values.tolist()}
