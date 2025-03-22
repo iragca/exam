@@ -1,4 +1,3 @@
-import pandas as pd
 import polars as pl
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -91,6 +90,7 @@ async def create_task(Task: Task):
         dict: A response indicating whether the task was successfully created.
               - If successful, the status will be "Task Created".
     """
+    print(Task)
     task_data = pl.read_csv("tasks.csv")
     user_data = pl.read_csv("users.csv")
 
@@ -102,9 +102,9 @@ async def create_task(Task: Task):
             task_data,
             pl.DataFrame(
                 {
-                    "user": [Task.user],
                     "task": [Task.task],
                     "deadline": [Task.deadline],
+                    "user": [Task.user],
                 }
             ),
         ]
@@ -127,6 +127,7 @@ async def get_tasks(name: str):
               - If no tasks are found for the user, an empty list will be returned.
     """
 
+    print(name)
     task_data = pl.read_csv("tasks.csv").to_pandas()
     user_data = pl.read_csv("users.csv")
 
