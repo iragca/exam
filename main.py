@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
 
+import polars as pl
+import pandas as pd
+
 app = FastAPI()
 
 app.add_middleware(
@@ -35,8 +38,13 @@ async def user_login(User: User):
         dict: A response indicating whether the login was successful or not.
               - If successful, ttasktatus will be "Logged in".
               - If failed (user not found or incorrect password), appropriate message will be returned.
-    """
-    return {"status": "Logged in"}
+    """ 
+    data = pl.read_csv("users.csv")
+
+    if User.username in data['username'] and User.password in data['password']:
+        return {"status": "Logged in"}
+    
+    return {"status": "User not found"}
 
 
 @app.post("/create_user/")
