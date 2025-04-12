@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, inspect
 
 from backend.config import DATABASE_URL, logger
-from backend.ddl import CREATE, DROP
+from backend.ddl import CREATE, DROP  # noqa: F401
 
 
 def initdb():
