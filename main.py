@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from backend.dml import INSERT, SELECT
-from db import initdb
+from backend.db import initdb
 
 ENGINE = initdb()
 
