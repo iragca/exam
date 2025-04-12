@@ -173,7 +173,7 @@ async def get_tasks(name: str):
 
         if len(data) == 0:
             return JSONResponse(
-                content={"status": []}, status_code=200
+                content={"tasks": []}, status_code=200
             )
 
         tasks = (
