@@ -1,7 +1,16 @@
 import polars as pl
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+from backend.dml import INSERT, SELECT
+from db import initdb
+
+ENGINE = initdb()
+
+insert = INSERT(ENGINE)
+select = SELECT(ENGINE)
 
 app = FastAPI()
 
@@ -28,7 +37,8 @@ class Task(BaseModel):
 @app.post("/login/")
 async def user_login(User: User):
     """
-    Handles the user login process. The function checks if the user exists in the users CSV file.
+    Handles the user login process.
+    The function checks if the user exists in the users CSV file.
     If the username and password match, the user is logged in successfully.
 
     Args:
@@ -37,25 +47,38 @@ async def user_login(User: User):
     Returns:
         dict: A response indicating whether the login was successful or not.
               - If successful, ttasktatus will be "Logged in".
-              - If failed (user not found or incorrect password), appropriate message will be returned.
+              - If failed (user not found or incorrect password),
+                appropriate message will be returned.
     """
-    data = pl.read_csv("users.csv")
+    data = select.users_by_username(User.username)
 
-    correct_user = User.username in data["username"]
-    correct_password = User.password in data["password"]
+    if data is None:
+        return JSONResponse(
+            content={"status": "User doesn't exist"}, status_code=404
+        )
+
+    correct_user = User.username in data[1]
+    correct_password = User.password in data[2]
 
     if correct_user and correct_password:
-        return {"status": "Logged in"}
+        return JSONResponse(
+            content={"status": "Logged in"}, status_code=200
+        )
     elif correct_user and not correct_password:
-        return {"status": "Incorrect Password"}
+        return JSONResponse(
+            content={"status": "Incorrect password"}, status_code=401
+        )
 
-    return {"status": "User not found"}
+    return JSONResponse(
+        content={"status": "Something went wrong"}, status_code=500
+    )
 
 
 @app.post("/create_user/")
 async def create_user(User: User):
     """
-    Creates a new user by adding their username and password to the users CSV file.
+    Creates a new user by adding their username and password
+    to the users table.
 
     Args:
         User (User): The username and password for the new user.
@@ -66,22 +89,31 @@ async def create_user(User: User):
               - If user already exists, a relevant message will be returned.
     """
 
-    data = pl.read_csv("users.csv")
+    data = select.users_by_username(User.username)
 
-    if User.username in data["username"]:
-        return {"status": "User already exists"}
+    if data is not None:
+        return JSONResponse(
+            content={"status": "User already exists"}, status_code=409
+        )
 
-    pl.concat(
-        [data, pl.DataFrame({"username": [User.username], "password": [User.password]})]
-    ).write_csv("users.csv")
-
-    return {"status": "User Created"}
+    try:
+        data = insert.user(User.username, User.password)
+    except Exception as e:
+        print(e)
+        return JSONResponse(
+            content={"status": "Something went wrong"}, status_code=500
+        )
+    else:
+        return JSONResponse(
+            content={"status": "User Created"}, status_code=201
+        )
 
 
 @app.post("/create_task/")
 async def create_task(Task: Task):
     """
-    Creates a new task by adding the task description, deadline, and associated user to the tasks CSV file.
+    Creates a new task by adding the task description, deadline,
+    and associated user to the tasks CSV file.
 
     Args:
         Task (Task): The task description, deadline, and associated user.
@@ -90,27 +122,25 @@ async def create_task(Task: Task):
         dict: A response indicating whether the task was successfully created.
               - If successful, the status will be "Task Created".
     """
-    print(Task)
-    task_data = pl.read_csv("tasks.csv")
-    user_data = pl.read_csv("users.csv")
 
-    if Task.user not in user_data["username"]:
-        return {"status": "User not found"}
+    data = select.users_by_username(Task.user)
 
-    pl.concat(
-        [
-            task_data,
-            pl.DataFrame(
-                {
-                    "task": [Task.task],
-                    "deadline": [Task.deadline],
-                    "user": [Task.user],
-                }
-            ),
-        ]
-    ).write_csv("tasks.csv")
+    if data is None:
+        return JSONResponse(
+            content={"status": "User doesn't exist"}, status_code=404
+        )
 
-    return {"status": "task Created"}
+    try:
+        insert.task(Task.task, Task.deadline, Task.user)
+    except Exception as e:
+        print(e)
+        return JSONResponse(
+            content={"status": "Something went wrong"}, status_code=500
+        )
+    else:
+        return JSONResponse(
+            content={"status": "task Created"}, status_code=201
+        )
 
 
 @app.get("/get_tasks/")
@@ -122,21 +152,37 @@ async def get_tasks(name: str):
         name (str): The username for which the tasks need to be fetched.
 
     Returns:
-        dict: A list of tasks (task description, deadline) associated with the given user.
+        dict:
+            A list of tasks (task description, deadline)
+            associated with the given user.
               - If tasks are found, the response will include the task details.
-              - If no tasks are found for the user, an empty list will be returned.
+              - If no tasks are found for the user,
+                an empty list will be returned.
     """
 
-    print(name)
-    task_data = pl.read_csv("tasks.csv").to_pandas()
-    user_data = pl.read_csv("users.csv")
+    data = select.users_by_username(name)
 
-    if name not in user_data["username"]:
-        return {"error": "User not found"}
+    if data is None:
+        return JSONResponse(
+            content={"status": "User doesn't exist"}, status_code=404
+        )
 
-    tasks = task_data.loc[task_data["user"] == name]
+    try:
 
-    if len(tasks) == 0:
-        return {"tasks": []}
+        tasks = (
+            pl.DataFrame(select.tasks_by_username("chrisgari"))
+            .select(["task", "deadline", "username"])
+            .with_columns(pl.col("deadline").cast(pl.Utf8).alias("deadline"))
+            .to_pandas()
+            .values.tolist()
+        )
 
-    return {"tasks": tasks.values.tolist()}
+    except Exception as e:
+        print(e)
+        return JSONResponse(
+            content={"status": "Something went wrong"}, status_code=500
+        )
+
+    return JSONResponse(
+        content={"tasks": tasks}, status_code=200
+    )

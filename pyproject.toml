@@ -6,8 +6,20 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard]>=0.115.11",
+    "ipykernel>=6.29.5",
+    "loguru>=0.7.3",
     "pandas>=2.2.3",
     "polars>=1.25.2",
+    "psycopg2>=2.9.10",
     "pyarrow>=19.0.1",
+    "sqlalchemy>=2.0.40",
     "uvicorn[standard]>=0.34.0",
 ]
+
+[dependency-groups]
+dev = [
+    "exam",
+]
+
+[tool.uv.sources]
+exam = { workspace = true }

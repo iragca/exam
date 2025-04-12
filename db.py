@@ -1,35 +1,28 @@
 from sqlalchemy import create_engine, inspect
-from sqlalchemy import text
 
-import os
-from dotenv import load_dotenv
+from backend.config import DATABASE_URL, logger
+from backend.ddl import CREATE, DROP
 
 
 def initdb():
-    load_dotenv()
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    try:
+        ENGINE = create_engine(DATABASE_URL, client_encoding="utf8")
+    except Exception as e:
+        logger.error(f"Error creating DB engine {e}")
+        exit(1)
 
-    engine = create_engine(DATABASE_URL, client_encoding="utf8")
+    logger.info("Connecting to the database...")
+    logger.info(f"Database URL: {DATABASE_URL}")
 
-    conn = engine.connect()
+    create = CREATE(ENGINE)
 
-    conn.execute(
-        text("""
-    CREATE TABLE IF NOT EXISTS users ( id SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
-    );
-    """)
-    )
-    conn.execute(
-        text("""
-    CREATE TABLE IF NOT EXISTS tasks ( id SERIAL PRIMARY KEY,
-    task VARCHAR(255) NOT NULL,
-    deadline DATE NOT NULL,
-    user VARCHAR(255) NOT NULL,
-    FOREIGN KEY (user) REFERENCES users(username)
-    );
-    """)
-    )
+    # DROP(ENGINE).drop_all()
+    create.userTable()
+    create.taskTable()
 
-    return conn
+    inspector = inspect(ENGINE)
+
+    logger.info(inspector.get_table_names())
+    logger.info("Database initialized successfully.")
+
+    return ENGINE
