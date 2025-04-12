@@ -170,7 +170,7 @@ async def get_tasks(name: str):
     try:
 
         tasks = (
-            pl.DataFrame(select.tasks_by_username("chrisgari"))
+            pl.DataFrame(select.tasks_by_username(name))
             .select(["task", "deadline", "username"])
             .with_columns(pl.col("deadline").cast(pl.Utf8).alias("deadline"))
             .to_pandas()
