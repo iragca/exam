@@ -3,7 +3,7 @@ from sqlalchemy import text
 
 class SELECT:
     """
-    Class to handle GET requests to the database.
+    Class to handle SELECT queries to the database.
     """
 
     def __init__(self, engine):
@@ -31,9 +31,9 @@ class SELECT:
         Args:
             username (str): The username of the user to retrieve.
         """
-        query = text("SELECT * FROM users WHERE username=:username").bindparams(
-            username=username
-        )
+        query = text(
+            "SELECT * FROM users WHERE username=:username"
+        ).bindparams(username=username)
 
         conn = self.engine.connect()
         result = conn.execute(query)
@@ -48,9 +48,9 @@ class SELECT:
         Args:
             username (str): The username of the user whose tasks to retrieve.
         """
-        query = text("SELECT * FROM tasks WHERE username=:username").bindparams(
-            username=username
-        )
+        query = text(
+            "SELECT * FROM tasks WHERE username=:username"
+        ).bindparams(username=username)
 
         conn = self.engine.connect()
         result = conn.execute(query)
