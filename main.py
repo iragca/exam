@@ -177,12 +177,17 @@ async def get_tasks(name: str):
             .values.tolist()
         )
 
+        if tasks is None:
+            return JSONResponse(
+                content={"status": "No tasks found"}, status_code=200
+            )
+
     except Exception as e:
         print(e)
         return JSONResponse(
             content={"status": "Something went wrong"}, status_code=500
         )
-
-    return JSONResponse(
-        content={"tasks": tasks}, status_code=200
-    )
+    else:
+        return JSONResponse(
+            content={"tasks": tasks}, status_code=200
+        )
