@@ -2,6 +2,9 @@ from sqlalchemy import text
 
 
 class DROP:
+    """
+    Class to handle DROP requests to the database.
+    """
 
     def __init__(self, engine):
         self.engine = engine

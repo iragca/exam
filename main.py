@@ -7,8 +7,16 @@ from pydantic import BaseModel
 from backend.dml import INSERT, SELECT
 from backend.db import initdb
 
+# Initialize the database engine with the corresponding configuration and
+# create the necessary tables.
 ENGINE = initdb()
 
+# Instantiate the necessary Data Manipulation Language (DML) classes for
+# database operations, both classes take the configured engine as an argument.
+#
+# Example of inserting a user:
+#   insert = INSERT(ENGINE)
+#   insert.user("username", "password")
 insert = INSERT(ENGINE)
 select = SELECT(ENGINE)
 
