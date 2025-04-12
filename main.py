@@ -169,21 +169,25 @@ async def get_tasks(name: str):
 
     try:
 
-        tasks = (
-            pl.DataFrame(select.tasks_by_username(name))
-            .select(["task", "deadline", "username"])
-            .with_columns(pl.col("deadline").cast(pl.Utf8).alias("deadline"))
-            .to_pandas()
-            .values.tolist()
-        )
+        data = select.tasks_by_username(name)
 
-        if tasks is None:
+        if len(data) == 0:
             return JSONResponse(
                 content={"status": "No tasks found"}, status_code=200
             )
 
+        tasks = (
+            pl.DataFrame(select.tasks_by_username(name))
+            .select(["task", "deadline", "username"])
+            .with_columns(
+                pl.col("deadline").cast(pl.Utf8).alias("deadline")
+            )
+            .to_pandas()
+            .values.tolist()
+        )
+
     except Exception as e:
-        print(e)
+        print(type(e))
         return JSONResponse(
             content={"status": "Something went wrong"}, status_code=500
         )
