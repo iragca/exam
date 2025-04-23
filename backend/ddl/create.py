@@ -54,3 +54,24 @@ class CREATE:
         conn.close()
 
         return result
+
+    def iragTable(self) -> None:
+        """
+        Creates the IRAG Table
+        """
+
+        conn = self.engine.connect()
+        result = conn.execute(
+            text(
+                """
+    CREATE TABLE IF NOT EXISTS irag (
+    id SERIAL PRIMARY KEY
+    );
+    """
+            )
+        )
+
+        conn.commit()
+        conn.close()
+
+        return result

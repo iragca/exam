@@ -40,6 +40,7 @@ def initdb():
     # DROP(ENGINE).drop_all()
     create.userTable()
     create.taskTable()
+    create.iragTable()
 
     inspector = inspect(ENGINE)
 
