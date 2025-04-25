@@ -16,7 +16,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"yandeu.five-server"
+				"yandeu.five-server",
+				"ms-python.python"
 			]
 		}
 	}
