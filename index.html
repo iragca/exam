@@ -55,7 +55,7 @@
 
             }
 
-            axios.post('http://127.0.0.1:8000/login/',data)
+            axios.post('/login/',data)
             .then(function (response) {
 
                 if(response.data.status == 'Logged in'){

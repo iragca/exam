@@ -44,7 +44,7 @@
 
 
         console.log('cookie',getCookie('username'))
-        axios.get('http://127.0.0.1:8000/get_tasks/?name='+getCookie('username'))
+        axios.get('/get_tasks/?name='+getCookie('username'))
         .then(function (response) {
 
             console.log(response.data.tasks)

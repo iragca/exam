@@ -56,7 +56,7 @@
                 'user':getCookie('username'),
             }
 
-            axios.post('http://127.0.0.1:8000/create_task/',data)
+            axios.post('/create_task/',data)
             .then(function (response) {
 
                 console.log(response.data.message)

@@ -46,7 +46,7 @@
 
             }
 
-            axios.post('http://127.0.0.1:8000/create_user/',data)
+            axios.post('/create_user/',data)
             .then(function (response) {
 
                 console.log(response.data.message)
